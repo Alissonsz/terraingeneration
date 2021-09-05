@@ -81,7 +81,6 @@ void main () {
 	           	     + gl_TessCoord[1] * te_in[1].TexCoords
 	                 + gl_TessCoord[2] * te_in[2].TexCoords;
 
-
   vec3 p0 = gl_TessCoord.x * evaluationpoint_wor[0]; // x is one corner
   vec3 p1 = gl_TessCoord.y * evaluationpoint_wor[1]; // y is the 2nd corner
   vec3 p2 = gl_TessCoord.z * evaluationpoint_wor[2]; // z is the 3rd corner (ignore when using quads)

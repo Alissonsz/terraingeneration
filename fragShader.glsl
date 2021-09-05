@@ -36,35 +36,36 @@ in GS_OUT {
 } te_out;*/
 
 vec2 parallaxBinarySearch(vec2 texCoords, vec3 viewDir){
-    vec3 v = viewDir;
-    float incUV = te_out.incUV;
-    float scale = 10;
+    vec2 P = viewDir.xy * 0.3;
+    vec3 front;
+    vec3 back;
+    vec3 mid;
 
-	vec3 STH1 = vec3(texCoords, te_out.hBase * scale) + incUV * v.xzy;
-	float d1;
+    vec2 prevCoords = texCoords;
+    front = vec3(texCoords + (0.1 * viewDir.xz), te_out.hBase + 0.3);
+    back  = vec3(texCoords - (0.1 * viewDir.xz), te_out.hBase - 0.3);
 
-	vec3 STH2 = vec3(texCoords, te_out.hBase * scale) - incUV * v.xzy;
-	float d2;
+    //vec2 uvin = front;
+    //vec2 uvout = back;
 
-	vec3 STHm;
-	float h;
+    vec2 currentCoords;
+    float Hmax = 1.0f;
+    float Hmin = 0.0f;
 
-	for (int i = 0; i < binaryIter; i ++) {
-		STHm = (STH1 + STH2) * 0.5;
+    for (int i = 0; i < binaryIter; i++) {
+        vec3 mid = (front + back) / 2; // middle
 
-		h = texture(texture1, STHm.st).r * scale;
-	
-		if ( h < STHm.z ) {
-			d1 = h - STHm.z;
-			STH1 = STHm;
-		} else {
-			d2 = h - STHm.z;
-			STH2 = STHm;
-		} 
-	}
-    
-	STHm = STH2 + (STH1 - STH2) * d2 / (d2 - d1);
-	return STHm.st;
+        float hTex = texture(texture1, mid.xy).r;
+
+        if (mid.z < hTex) {
+            back = mid;
+        } else {
+            front = mid;
+        }
+        currentCoords = front.xy * mid.z + back.xy * (1 - mid.z);
+    }
+
+    return currentCoords;
 }
 
 vec2 parallaxMapping(vec2 texCoords, vec3 viewDir){
@@ -73,29 +74,24 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir){
     // calculate the size of each layer
     float layerDepth = 1.0 / numLayers;
     // depth of current layer
-    float currentLayerDepth = 0.0;
+    float currentLayerDepth = te_out.hBase;
     // the amount to shift the texture coordinates per layer (from vector P)
     vec2 P = viewDir.xy * 0.3;
 
-
     vec2 deltaTexCoords = P / numLayers;
-    vec2 prevCoords = texCoords;
     texCoords = texCoords + P;
-
-    P = prevCoords;
 
     // get initial values
     vec2  currentTexCoords     = texCoords;
-    float currentDepthMapValue = (1 - (texture(texture1, currentTexCoords).r - te_out.hBase)) /2;
+    float currentDepthMapValue = (1 - (texture(texture1, currentTexCoords).r));
     vec2 finalCoords;
 
-    while(currentLayerDepth < currentDepthMapValue)
-    {
+    while(currentLayerDepth < currentDepthMapValue) {
         // shift texture coordinates along direction of P
         currentTexCoords -= deltaTexCoords;
 
         // get depthmap value at current texture coordinates
-        currentDepthMapValue = 1 - (texture(texture1, currentTexCoords).r - te_out.hBase);
+        currentDepthMapValue = 1 - (texture(texture1, currentTexCoords).r);
 
         // get depth of next layer
         currentLayerDepth += layerDepth;
@@ -106,7 +102,7 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir){
 
     // get depth after and before collision for linear interpolation
     float afterDepth  = currentDepthMapValue - currentLayerDepth;
-    float beforeDepth = (1 - (texture(texture1, prevTexCoords).r) - te_out.hBase) - currentLayerDepth + layerDepth;
+    float beforeDepth = (1 - (texture(texture1, prevTexCoords).r)) - currentLayerDepth + layerDepth;
 
     // interpolation of texture coordinates
     float weight = afterDepth / (afterDepth - beforeDepth);
@@ -158,7 +154,7 @@ void main() {
 
     vec4 result = vec4(specular + diffuse + ambient, 1.0);
     //vec4 result = vec4(((te_out.TangentFragPos + 50) / 100).xyz, 1.0);
-    //vec4 result = vec4(newNormal, 1.0);
-    //vec4 result = vec4(te_out.TexCoords.x, 0.0, te_out.TexCoords.y, 1.0);
+    //vec4 result = vec4(vec3(viewDir), 1.0);
+    //vec4 result = vec4(0, 0, te_out.hBase/10, 1.0);
     FragColor = result;
 }

@@ -69,7 +69,7 @@ void main( void ) {
     for( int i=0; i < gl_in.length( ); i++ )
     {
         gs_out.TexCoords = gs_in[i].TexCoords;
-        gs_out.hBase = gl_in[i].gl_Position.y;
+        gs_out.hBase = gl_in[i].gl_Position.y/10;
         gs_out.normal = normalize(normal);
         gs_out.T = tang;
         gs_out.B = bitang;
