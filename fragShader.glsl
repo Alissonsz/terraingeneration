@@ -45,12 +45,7 @@ vec2 parallaxBinarySearch(vec2 texCoords, vec3 viewDir){
     front = vec3(texCoords + (0.1 * viewDir.xz), te_out.hBase + 0.3);
     back  = vec3(texCoords - (0.1 * viewDir.xz), te_out.hBase - 0.3);
 
-    //vec2 uvin = front;
-    //vec2 uvout = back;
-
     vec2 currentCoords;
-    float Hmax = 1.0f;
-    float Hmin = 0.0f;
 
     for (int i = 0; i < binaryIter; i++) {
         vec3 mid = (front + back) / 2; // middle
@@ -62,6 +57,7 @@ vec2 parallaxBinarySearch(vec2 texCoords, vec3 viewDir){
         } else {
             front = mid;
         }
+        
         currentCoords = front.xy * mid.z + back.xy * (1 - mid.z);
     }
 

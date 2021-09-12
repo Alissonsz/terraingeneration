@@ -1,4 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <iostream>
 #include <math.h>
 #include <SDL2/SDL.h>
@@ -7,10 +8,15 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "stb_image.h"
+#include "stb_image_write.h"
 #include "Shader.h"
 #include "Camera.h"
 
 #define ClearOpenGLErrors() _check_gl_error(__FILE__,__LINE__)
+
+#   ifndef GL_R16
+#   define GL_R16 0x822A
+#   endif
 
 /*void // ClearOpenGLErrors() {
 	GLenum error = glGetError();
@@ -667,14 +673,15 @@ int main(int argc, char* args[]){
 
     int width, height, nrChannels;
     //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    data1 = stbi_load("heightmap.jpg", &width, &height, &nrChannels, 0);
+    data1 = stbi_load("ps_height_1k.png", &width, &height, &nrChannels, STBI_grey_alpha);
+	std::cout << width << " " << height << " " << nrChannels << std::endl;
 
-    if (data1 != NULL){
+    if (data1 != NULL) {
     	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, width, height, 0, GL_RED, GL_UNSIGNED_SHORT, data1);
         glGenerateMipmap(GL_TEXTURE_2D);
 		GLenum error = glGetError();
 		if(error != GL_NO_ERROR) std::cout << gluErrorString(error)<<std::endl;
@@ -682,9 +689,9 @@ int main(int argc, char* args[]){
     else {
         std::cout << "Failed to load texture" << std::endl;
     }
+
 	createNormalMap(data1, 1025);
 	unsigned int VAO = createTerrain(data1, 1025);
-
 
 	unsigned char *data;
 	 // texture 2
