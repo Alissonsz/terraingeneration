@@ -36,14 +36,14 @@ in GS_OUT {
 } te_out;*/
 
 vec2 parallaxBinarySearch(vec2 texCoords, vec3 viewDir){
-    vec2 P = viewDir.xy * 0.3;
+    vec2 P = normalize(viewDir.xy * 0.3);
     vec3 front;
     vec3 back;
     vec3 mid;
 
     vec2 prevCoords = texCoords;
-    front = vec3(texCoords + (0.1 * viewDir.xz), te_out.hBase + 0.3);
-    back  = vec3(texCoords - (0.1 * viewDir.xz), te_out.hBase - 0.3);
+    front = vec3(texCoords + (0.05 * viewDir.xy), te_out.hBase + 0.3);
+    back  = vec3(texCoords - (0.05 * viewDir.xy), te_out.hBase - 0.3);
 
     vec2 currentCoords;
 
@@ -149,8 +149,8 @@ void main() {
     vec3 ambient = ambientStrength * lightColor;
 
     vec4 result = vec4(specular + diffuse + ambient, 1.0);
-    //vec4 result = vec4(((te_out.TangentFragPos + 50) / 100).xyz, 1.0);
-    //vec4 result = vec4(vec3(viewDir), 1.0);
+    //vec4 result = vec4(texture(texture1, te_out.TexCoords).r, texture(texture1, te_out.TexCoords).r, texture(texture1, te_out.TexCoords).r, 1.0);
+    //vec4 result = vec4(newNormal, 1.0);
     //vec4 result = vec4(0, 0, te_out.hBase/10, 1.0);
     FragColor = result;
 }
