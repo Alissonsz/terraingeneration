@@ -38,7 +38,7 @@ void _check_gl_error(const char *file, int line) {
         }
 }
 
-unsigned char *data1;
+uint16_t *data1;
 bool vertchangeup = false;
 bool vertchangedown = false;
 std::vector<unsigned char> normalsVec;
@@ -124,6 +124,7 @@ bool Init(){
 		std::cout<<"failed to init glew"<<std::endl;
 		return false;
 	}
+	std::cout << "GL Version" << glGetString(GL_VERSION) << std::endl;
 
 	//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	return true;
@@ -368,7 +369,7 @@ void renderQuad() {
 		// ClearOpenGLErrors();
 }
 
-unsigned int createTerrain(const unsigned char* heightMap, int width){
+unsigned int createTerrain(uint16_t* heightMap, int width){
 	vert.clear();
 	indices.clear();
 	int nVerticesX, nVerticesY;
@@ -387,7 +388,7 @@ unsigned int createTerrain(const unsigned char* heightMap, int width){
 			if(heightMapX > 1024){
 				std::cout<<"Out of range = "<<heightMapX<<" "<<curX<<std::endl;
 			}
-			int vertexHeight = heightMap[((heightMapZ * width + heightMapX) * 3)];
+			int vertexHeight = heightMap[((heightMapZ * width + heightMapX) * 1)];
 			float curY = vertexHeight * 0.023;
 
 
@@ -459,9 +460,9 @@ unsigned int createTerrain(const unsigned char* heightMap, int width){
 	return VAO;
 }
 
-void createNormalMap(const unsigned char* heightMap, int width){
+void createNormalMap(uint16_t* heightMap, int width){
 	int nVerticesX, nVerticesY;
-	nVerticesX = nVerticesY = 1025;
+	nVerticesX = nVerticesY = width;
 	float curZ = +TERRAIN_SIZE;
 	for(int i=0; i<nVerticesX; i++){
 
@@ -470,13 +471,13 @@ void createNormalMap(const unsigned char* heightMap, int width){
 		for(int j=0; j<nVerticesY; j++){
 
 
-			int heightMapX = MapInRange(curX, -TERRAIN_SIZE, TERRAIN_SIZE, 0, 1024);
-			int heightMapZ = MapInRange(curZ, -TERRAIN_SIZE, TERRAIN_SIZE, 0, 1024);
-			if(heightMapX > 1024){
+			int heightMapX = MapInRange(curX, -TERRAIN_SIZE, TERRAIN_SIZE, 0, width - 1);
+			int heightMapZ = MapInRange(curZ, -TERRAIN_SIZE, TERRAIN_SIZE, 0, width - 1);
+			if(heightMapX > (width - 1)){
 				std::cout<<"Out of range = "<<heightMapX<<" "<<curX<<std::endl;
 			}
-			int vertexHeight = heightMap[((heightMapZ * width + heightMapX) * 3)];
-			float curY = vertexHeight * 0.023;
+			int vertexHeight = heightMap[((heightMapZ * width + heightMapX) * 1)];
+			float curY = vertexHeight * 0.00008984375;
 
 
 			vert.push_back(glm::vec3(curX, curY, curZ));
@@ -667,27 +668,27 @@ int main(int argc, char* args[]){
 
     int width, height, nrChannels;
     //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    data1 = stbi_load("heightmap.jpg", &width, &height, &nrChannels, 0);
+    data1 = stbi_load_16("ps_height_1k.png", &width, &height, &nrChannels, 0);
+	std::cout << nrChannels << " " << width << std::endl;
 
     if (data1 != NULL){
     	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R16, width, height, 0, GL_RED, GL_UNSIGNED_SHORT, data1);
         glGenerateMipmap(GL_TEXTURE_2D);
 		GLenum error = glGetError();
-		if(error != GL_NO_ERROR) std::cout << gluErrorString(error)<<std::endl;
-    }
-    else {
+		if (error != GL_NO_ERROR) std::cout << gluErrorString(error) <<std::endl;
+    } else {
         std::cout << "Failed to load texture" << std::endl;
     }
-	createNormalMap(data1, 1025);
+
+	createNormalMap(data1, width);
 	unsigned int VAO = createTerrain(data1, 1025);
 
-
 	unsigned char *data;
-	 // texture 2
+	// texture 2
     // ---------
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);

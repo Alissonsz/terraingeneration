@@ -150,7 +150,7 @@ void main() {
 
     vec4 result = vec4(specular + diffuse + ambient, 1.0);
     //vec4 result = vec4(texture(texture1, te_out.TexCoords).r, texture(texture1, te_out.TexCoords).r, texture(texture1, te_out.TexCoords).r, 1.0);
-    //vec4 result = vec4(newNormal, 1.0);
+    //vec4 result = vec4(texture(normalTexture, te_out.TexCoords).rgb, 1.0);
     //vec4 result = vec4(0, 0, te_out.hBase/10, 1.0);
     FragColor = result;
 }
